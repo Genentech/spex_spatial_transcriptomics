@@ -1,0 +1,44 @@
+{
+    "name": "STNormalization",
+    "description": "Normalize RNA counts for analysis",
+    "stage": "0",
+    "params":{
+        "size_factor": {
+            "name": "size_factor",
+            "description": "Size factor for log transform",
+            "type": "int",
+            "required": false,
+            "default": 10000
+        },
+
+        "clip_value": {
+            "name": "clip_value",
+            "description": "Max count value",
+            "type": "float",
+            "required": true,
+            "default": 10
+        },
+
+        "do_QC" {
+            "name": "do_QC",
+            "description": "Whether to do total count-based filtering",
+            "type": "bool",
+            "required": true,
+            "default" : false
+        }
+    },
+    "script_path": "STNormalization",
+    "return": {
+        "STNorm": {
+            "name": "STNorm",
+            "type": "adata",
+            "description": "Normalized h5ad"
+        }
+    },
+    "depends_and_script": [
+        "load_data"  
+    ],
+    "libs": [
+        "scanpy==1.9.3"
+    ]
+}
