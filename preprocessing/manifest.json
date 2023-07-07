@@ -19,7 +19,7 @@
             "default": 10
         },
 
-        "do_QC" {
+        "do_QC": {
             "name": "do_QC",
             "description": "Whether to do total count-based filtering",
             "type": "bool",
