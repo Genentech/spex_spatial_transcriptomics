@@ -88,7 +88,7 @@ def CLQ_vec(adata,clust_col='leiden',clust_uniq=None,radius=50,n_perms=1000):
     clq_perm = (global_clq[:,1:,:] < global_clq[:,0,:].reshape(n_clust,-1,n_clust)).sum(1)/n_perms
     clq_perm = pd.DataFrame(clq_perm,index=idx,columns=idx)
 
-    adata.obsm['NCV'] = ncv[0,:,:]
+    adata.obsm['NCV'] = pd.DataFrame(ncv[0,:,:],index=adata.obs_names,columns=idx)
     adata.obsm['local_clq'] = lclq
     adata.uns['CLQ'] = {'global_clq': gclq, 'permute_test': clq_perm}
 
@@ -101,6 +101,5 @@ def run (**kwargs):
     radius = kwargs.get('radius')
     n_perms = kwargs.get('n_perms')
     clust_uniq = kwargs.get('clust_uniq')
-
 
     return{'adata': CLQ_vec(adata,clust_col,clust_uniq,radius,n_perms)}
