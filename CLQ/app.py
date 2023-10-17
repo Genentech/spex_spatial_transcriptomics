@@ -33,19 +33,20 @@ def CLQ_vec(adata,clust_col='leiden',clust_uniq=None,radius=50,n_perms=1000):
     #Calculate spatial neighbors once.
     sq.gr.spatial_neighbors(adata,coord_type='generic',radius=radius)
     neigh_idx = adata.obsp['spatial_connectivities'].tolil()
-    neighborhoods = [x for i,x in enumerate(neigh_idx.rows)] #Append self to match previous implementation? (x + [i])
-    n_cells = len(neighborhoods)
+    neighborhoods = [x + [i] for i,x in enumerate(neigh_idx.rows)] #Append self to match previous implementation? (x + [i])
 
     #Global frequencies.
     global_cluster_freq = adata.obs[clust_col].value_counts(normalize=True)
-    if clust_uniq is None:
-        clust_uniq = global_cluster_freq.index
-
+    if clust_uniq is not None:
+        null_clusters = global_cluster_freq.index.difference(pd.Index(clust_uniq))
+        for c in null_clusters:
+            global_cluster_freq[c] = 0
+    
     #Cluster identities for each cell
     cell_ids = adata.obs.loc[:,clust_col]
 
     #Map clusters to integers for fast vectorization in numpy
-    label_dict = {x:i for i,x in enumerate(clust_uniq)}
+    label_dict = {x:i for i,x in enumerate(global_cluster_freq.index)}
     n_clust = len(label_dict)
 
     #Permute cluster identities across cells
@@ -60,7 +61,7 @@ def CLQ_vec(adata,clust_col='leiden',clust_uniq=None,radius=50,n_perms=1000):
     p.join()
 
     ncv = np.array(temp).transpose((1,0,2))
-    norm_ncv = ncv/ncv.sum(axis=2)[:,:,np.newaxis]
+    norm_ncv = ncv/(ncv.sum(axis=2)[:,:,np.newaxis]+1e-99)
 
     #Old single-threaded version.
     '''
@@ -83,12 +84,13 @@ def CLQ_vec(adata,clust_col='leiden',clust_uniq=None,radius=50,n_perms=1000):
     idx = [x for x in label_dict]
     lclq = pd.DataFrame(local_clq[0,:,:],columns=idx,index=adata.obs_names)
     gclq = pd.DataFrame(global_clq[:,0,:],index=idx,columns=idx)
+    ncv = pd.DataFrame(ncv[0,:,:],index=adata.obs_names,columns=idx)
 
     #Permutation test
     clq_perm = (global_clq[:,1:,:] < global_clq[:,0,:].reshape(n_clust,-1,n_clust)).sum(1)/n_perms
     clq_perm = pd.DataFrame(clq_perm,index=idx,columns=idx)
-
-    adata.obsm['NCV'] = pd.DataFrame(ncv[0,:,:],index=adata.obs_names,columns=idx)
+        
+    adata.obsm['NCV'] = ncv
     adata.obsm['local_clq'] = lclq
     adata.uns['CLQ'] = {'global_clq': gclq, 'permute_test': clq_perm}
 
