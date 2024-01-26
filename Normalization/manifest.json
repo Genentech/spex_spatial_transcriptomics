@@ -1,7 +1,7 @@
 {
-    "name": "STNormalization",
+    "name": "normalization",
     "description": "Normalize RNA counts for analysis",
-    "stage": "0",
+    "stage": "1",
     "params":{
         "size_factor": {
             "name": "size_factor",
@@ -18,16 +18,16 @@
             "required": true,
             "default": 10
         },
-
         "do_QC": {
             "name": "do_QC",
             "description": "Whether to do total count-based filtering",
-            "type": "bool",
+            "enum": ["true", "false"],
+            "type": "enum",
             "required": true,
-            "default" : false
+            "default": "false"
         }
     },
-    "script_path": "STNormalization",
+    "script_path": "normalization",
     "return": {
         "STNorm": {
             "name": "STNorm",
@@ -36,9 +36,13 @@
         }
     },
     "depends_and_script": [
-        "load_data"  
+        "load_anndata",
+        "feature_extraction"
     ],
+    "conda": ["python=3.8"],
     "libs": [
+        "scanpy==1.9.3",
+        "pandas==1.3.4",
         "scanpy==1.9.3"
     ]
 }

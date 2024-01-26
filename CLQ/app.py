@@ -1,11 +1,77 @@
 import numpy as np
 import pandas as pd
 import squidpy as sq
-from multiprocessing import Pool
-import glob
-
-
+from scipy.sparse import issparse
+from anndata import AnnData
 # Utilize complex numbers to vectorize permutation counts
+
+
+# to not move all vitessce inside CLQ
+def to_dense(arr):
+    """
+    Convert a sparse array to dense.
+
+    :param arr: The array to convert.
+    :type arr: np.array
+
+    :returns: The converted array (or the original array if it was already dense).
+    :rtype: np.array
+    """
+    if issparse(arr):
+        return arr.todense()
+    return arr
+
+
+def to_uint8(arr, norm_along=None):
+    """
+    Convert an array to uint8 dtype.
+
+    :param arr: The array to convert.
+    :type arr: np.array
+    :param norm_along: How to normalize the array values. By default, None. Valid values are "global", "var", "obs".
+    :type norm_along: str or None
+
+    :returns: The converted array.
+    :rtype: np.array
+    """
+    # Re-scale the gene expression values between 0 and 255 (one byte ints).
+    if norm_along is None:
+        norm_arr = arr
+    elif norm_along == "global":
+        arr *= 255.0 / arr.max()
+        norm_arr = arr
+    elif norm_along == "var":
+        # Normalize along gene axis
+        arr = to_dense(arr)
+        num_cells = arr.shape[0]
+        min_along_genes = arr.min(axis=0)
+        max_along_genes = arr.max(axis=0)
+        range_per_gene = max_along_genes - min_along_genes
+        ratio_per_gene = 255.0 / range_per_gene
+
+        norm_arr = np.multiply(
+            (arr - np.tile(min_along_genes, (num_cells, 1))),
+            np.tile(ratio_per_gene, (num_cells, 1))
+        )
+    elif norm_along == "obs":
+        # Normalize along cell axis
+        arr = to_dense(arr)
+        num_genes = arr.shape[1]
+        min_along_cells = arr.min(axis=1)
+        max_along_cells = arr.max(axis=1)
+        range_per_cell = max_along_cells - min_along_cells
+        ratio_per_cell = 255.0 / range_per_cell
+
+        norm_arr = np.multiply(
+            (arr.T - np.tile(min_along_cells, (num_genes, 1))),
+            np.tile(ratio_per_cell, (num_genes, 1))
+        ).T
+    else:
+        raise ValueError("to_uint8 received unknown norm_along value")
+    return norm_arr.astype('u1')
+# to not move all vitessce inside CLQ
+
+
 def unique_perms(a):
     weight = 1j * np.arange(0, a.shape[0])
     b = a + weight[:, np.newaxis]
@@ -61,25 +127,15 @@ def CLQ_vec(adata, clust_col='leiden', clust_uniq=None, radius=50, n_perms=1000)
     cell_id_perms.extend([[label_dict[x] for x in np.random.permutation(cell_ids)] for i in range(n_perms)])
     cell_id_perms = np.array(cell_id_perms)
 
-    # Calculate neighborhood content vectors (NCVs).
-    p = Pool(initializer=pool_ncvs, initargs=[n_perms, n_clust, cell_id_perms])
-    temp = p.map(process_neighborhood, [n for n in neighborhoods])
-    p.close()
-    p.join()
-
-    ncv = np.array(temp).transpose((1, 0, 2))
-    norm_ncv = ncv / (ncv.sum(axis=2)[:, :, np.newaxis] + 1e-99)
-
-    # Old single-threaded version.
-    '''
-    ncv = np.zeros((n_perms+1,n_cells,n_clust),dtype=np.float32)
-    for i,cell_neighborhood in enumerate(neighborhoods):
-        if len(cell_neighborhood) == 0:
+    # Calculate neighborhood content vectors (NCVs) sequentially.
+    ncv = np.zeros((n_perms+1, len(neighborhoods), n_clust), dtype=np.float32)
+    for i, n in enumerate(neighborhoods):
+        if len(n) == 0:
             continue
+        j, cts = unique_perms(cell_id_perms[:, n])
+        ncv[np.imag(j).astype(np.int32), i, np.real(j).astype(np.int32)] = cts
 
-        j,cts = unique_perms(cell_id_perms[:,cell_neighborhood])
-        ncv[np.imag(j).astype(np.int32),i,np.real(j).astype(np.int32)] = cts
-    '''
+    norm_ncv = ncv / (ncv.sum(axis=2)[:, :, np.newaxis] + 1e-99)
 
     # Read out local CLQ from NCV vectors
     local_clq = norm_ncv / np.array([global_cluster_freq[x] for x in label_dict])
@@ -102,17 +158,37 @@ def CLQ_vec(adata, clust_col='leiden', clust_uniq=None, radius=50, n_perms=1000)
     adata.obsm['NCV'] = ncv
     adata.obsm['local_clq'] = lclq
     adata.uns['CLQ'] = {'global_clq': gclq, 'permute_test': clq_perm}
+    obs = pd.DataFrame(index=adata.obs['cluster_phenograph'].unique(), columns=[], data=[])
+    var = pd.DataFrame(index=adata.obs['cluster_phenograph'].unique(), columns=[], data=[])
 
-    return adata
+    bdata = AnnData(
+        obs=obs,
+        var=var
+    )
+    bdata.layers['global_clq'] = gclq
+    bdata.layers['permute_test'] = clq_perm
+
+    return bdata
 
 
 def run(**kwargs):
     # after_phenograph_clusters on full data per image
     adata = kwargs.get('adata')
+    tasks_list = kwargs.get('tasks_list')
 
-    clust_col = adata.obs.columns[-1:][0]  # column where is clustered
-    radius = kwargs.get('radius')  # int  0-50-500
-    n_perms = kwargs.get('n_perms')  # int  1-1000
-    clust_uniq = adata.obs['cluster_phenograph'].unique()  # set(clust_col) clust_col.unique()
+    adatas_list = []
+    for task in tasks_list:
+        omero_id = task['omeroId']
+        filtered_adata = adata[adata.obs['image_id'] == omero_id].copy()
 
-    return {'adata': CLQ_vec(adata, clust_col, clust_uniq, radius, n_perms)}
+        clust_col = filtered_adata.obs.columns[-1:][0]  # Последний столбец obs, предположительно clust_col
+        radius = kwargs.get('radius')
+        n_perms = kwargs.get('n_perms')
+        clust_uniq = filtered_adata.obs['cluster_phenograph'].unique()
+
+        processed_adata = CLQ_vec(filtered_adata, clust_col, clust_uniq, radius, n_perms)
+        adatas_list.append({
+            f"{task.get('_key')}-clq": processed_adata}
+        )
+
+    return {'adatas_list': adatas_list}

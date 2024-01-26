@@ -1,24 +1,24 @@
 {
-    "name": "STDimreduce",
+    "name": "dimensionality_reduction",
     "description": "Dimensionality reduction and neighborhood graph for downstream analysis",
     "stage": "1",
     "params":{
         "prefilter": {
             "name": "prefilter",
             "description": "Whether to filter cells based on negative probes",
-            "type": "bool",
+            "enum": ["true", "false"],
+            "type": "enum",
             "required": true,
-            "default": false
+            "default": "false"
         },
-
         "method": {
             "name": "method",
             "description": "The dimensionality reduction method (PCA or scVI)",
-            "type": "string",
+            "enum": ["scvi", "pca", "diff_map"],
+            "type": "enum",
             "required": true,
             "default": "pca"
         },
-
         "min_dist": {
             "name": "min_dist",
             "description": "The minimum distance between points in UMAP space",
@@ -43,7 +43,7 @@
             "default": 50
         }
     },
-    "script_path": "STDimreduce",
+    "script_path": "dimensionality_reduction",
     "return": {
         "STDimRed": {
             "name": "STDimRed",
@@ -57,11 +57,15 @@
         }
     },
     "depends_and_script": [
-        "STNormalization"
+        "normalization"
     ],
+    "conda": ["python=3.9"],
     "libs": [
+        "requests==2.31.0",
         "scanpy==1.9.3",
         "scvi-tools==0.20.3",
-        "pegasuspy[all]==1.7.1"
+        "pegasuspy[all]==1.7.1",
+        "pandas==1.3.4",
+        "Cython==3.0.5"
     ]
 }

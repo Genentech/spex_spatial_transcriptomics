@@ -3,6 +3,8 @@
   "description": "Spatial transcriptomics",
   "order": 1,
   "stages": [
-    "CLQ"
+    "CLQ",
+    "normalization",
+    "dimensionality_reduction"
   ]
 }
