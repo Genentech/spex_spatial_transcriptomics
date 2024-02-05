@@ -57,7 +57,7 @@
         }
     },
     "depends_and_script": [
-        "normalization"
+        "preprocessing"
     ],
     "conda": ["python=3.9"],
     "libs": [

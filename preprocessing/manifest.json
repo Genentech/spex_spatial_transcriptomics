@@ -1,5 +1,5 @@
 {
-    "name": "normalization",
+    "name": "preprocessing",
     "description": "Normalize RNA counts for analysis",
     "stage": "1",
     "params":{
@@ -27,7 +27,7 @@
             "default": "false"
         }
     },
-    "script_path": "normalization",
+    "script_path": "preprocessing",
     "return": {
         "STNorm": {
             "name": "STNorm",
