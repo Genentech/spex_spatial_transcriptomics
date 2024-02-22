@@ -40,11 +40,13 @@
     "depends_and_script": [
         "dimensionality_reduction"
     ],
-    "conda": ["python=3.11"],
+    "conda": ["python=3.10"],
     "libs": [
         "scanpy==1.9.8",
-        "leidenalg==0.8.10",
         "pandas==2.2.0",
         "anndata==0.10.5"
+    ],
+    "conda_pip": [
+        "leidenalg==0.8.10"
     ]
 }

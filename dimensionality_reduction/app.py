@@ -134,4 +134,4 @@ def run(**kwargs):
 
     out = reduce_dimensionality(adata, prefilter, method, mdist, n_neighbors, latent_dim)
 
-    return rdict
+    return {'adata': out}
