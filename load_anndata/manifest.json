@@ -28,9 +28,9 @@
   "depends_and_script": [],
   "depends_or_script": [
   ],
+  "conda": ["python=3.11"],
   "libs": [
-    "anndata==0.8.0",
-    "pandas==1.3.4",
-    "numpy==1.22.4"
+    "scanpy==1.9.8",
+    "pandas==2.2.0"
   ]
 }

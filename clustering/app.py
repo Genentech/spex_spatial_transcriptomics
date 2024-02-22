@@ -1,23 +1,28 @@
-import squidpy as sq
+# import squidpy as sq
 import scanpy as sc
 
 
-def cluster(adata, spatial_weight=0.0, resolution=1.0, method='leiden'):
-    # Args:
-    # adata: The anndata after preprocessing and dimensionality reduction.
-    # spatial_weight: Weight of spatial edges compared to genetic edges
-    # resolution: The resolution of the modularity cost function. Lower is less clusters, higher is more clusters.
-    # method: The method by which we cluster data. Louvain, Leiden, TODO:: spectral Louvain, spectral Leiden
+def cluster(adata, spatial_weight = 0.0, resolution=1.0, method='leiden'):
+    #Args:
+    #adata: The anndata after preprocessing and dimensionality reduction.
+    #spatial_agg: Whether we include spatial neighbors in the adjacency calculation
+    #resolution: The resolution of the modularity cost function. Lower is less clusters, higher is more clusters.
+    #method: The method by which we cluster data. Louvain, Leiden, TODO:: spectral Louvain, spectral Leiden
 
-    # Clustering
+    #Clustering
     adjacency = adata.obsp['connectivities']
 
-    # Force spatial neighbors to be close.
+    #Force spatial neighbors to be close.
     if spatial_weight > 0:
-        sq.gr.spatial_neighbors(adata, coord_type='generic', delaunay=True)
-        adjacency += adata.obsp['spatial_connectivities'] * spatial_weight
+        if 'spatial_connectivities' in adata.obsp:
+            adjacency += adata.obsp['spatial_connectivities']*spatial_weight
 
-    # Scanpy
+    #Pegasus
+    #pdat = UnimodalData(adata)
+    #pdat.obsp['W_pca'] = pdat.obsp['connectivities']
+    #pg.cluster(pdat,algo=method)
+
+    #Scanpy
     if method == 'leiden':
         sc.tl.leiden(adata, resolution=resolution, adjacency=adjacency)
     elif method == 'louvain':
