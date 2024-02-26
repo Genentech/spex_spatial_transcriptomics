@@ -91,7 +91,7 @@ def preprocess(adata, scale_max = 10, size_factor = None, do_QC = False):
 
 def run(**kwargs):
     adata = kwargs.get('adata')
-    scale_max = kwargs.get('scale_max')
+    scale_max = kwargs.get('scale_max', 10)
     size_factor = kwargs.get('size_factor')
     do_QC = True if kwargs.get('do_qc') == 'true' else False
 

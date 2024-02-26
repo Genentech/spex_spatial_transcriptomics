@@ -14,7 +14,7 @@
             "name": "scale_max",
             "description": "Maximum number of std away from mean (clip larger values to this number)",
             "type": "int",
-            "required": true,
+            "required": false,
             "default": 10
         },
         "do_QC": {
