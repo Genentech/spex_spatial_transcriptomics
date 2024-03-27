@@ -44,6 +44,7 @@
     "libs": [
         "scanpy==1.9.8",
         "pandas==2.2.0",
+        "python-louvain==0.16",
         "anndata==0.10.5"
     ],
     "conda_pip": [
