@@ -15,7 +15,7 @@
   "return": {
     "adata": {
       "name": "adata",
-      "type": "table",
+      "type": "adata",
       "description": "h5ad with Cluster names renamed"
     }
   },
@@ -24,6 +24,6 @@
     "clustering"
   ],
   "libs": [
-    "anndata==0.8.2"
+    "anndata==0.10.5"
   ]
 }
