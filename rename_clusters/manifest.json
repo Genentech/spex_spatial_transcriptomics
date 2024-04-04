@@ -3,19 +3,21 @@
   "description": "Rename cluster names",
   "stage": "1",
   "params":{
-    "radius": {
-      "name": "clusters",
-      "description": "Cluster names",
-      "type": "table",
-      "required": true,
-      "default": 49.9
+    "cluster_list": {
+      "name": "Rename cluster table",
+      "type": "dataGrid",
+      "default": [
+        {
+          "0": "A"
+        }
+      ]
     }
   },
   "script_path": "rename_clusters",
   "return": {
     "adata": {
       "name": "adata",
-      "type": "adata",
+      "type": "dataGrid",
       "description": "h5ad with Cluster names renamed"
     }
   },

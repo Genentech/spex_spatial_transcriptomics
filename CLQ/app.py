@@ -101,6 +101,7 @@ def pool_ncvs(argperm, argclust, argcperms):
 # Optimized CLQ using vectorized operations
 def CLQ_vec(adata, clust_col='leiden', clust_uniq=None, radius=50, n_perms=1000):
     # Calculate spatial neighbors once.
+    radius = float(radius)
     adata.obsm['spatial'] = adata.obs[['x_coordinate', 'y_coordinate']].to_numpy()
 
     sq.gr.spatial_neighbors(adata, coord_type='generic', radius=radius)
@@ -181,7 +182,7 @@ def run(**kwargs):
         omero_id = task['omeroId']
         filtered_adata = adata[adata.obs['image_id'] == omero_id].copy()
 
-        clust_col = filtered_adata.obs.columns[-1:][0]  # Последний столбец obs, предположительно clust_col
+        clust_col = filtered_adata.obs.columns[-1:][0]
         radius = kwargs.get('radius')
         n_perms = kwargs.get('n_perms')
         clust_uniq = filtered_adata.obs['cluster_phenograph'].unique()

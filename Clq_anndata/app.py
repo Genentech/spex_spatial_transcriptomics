@@ -99,7 +99,7 @@ def pool_ncvs(argperm,argclust,argcperms):
 def CLQ_vec(adata, clust_col='leiden', clust_uniq=None, radius=50, n_perms=1000):
     # Calculate spatial neighbors once.
     # adata.obsm['spatial'] = adata.obs[['x_coordinate', 'y_coordinate']].to_numpy()
-
+    radius = float(radius)
     sq.gr.spatial_neighbors(adata, coord_type='generic', radius=radius)
     neigh_idx = adata.obsp['spatial_connectivities'].tolil()
     neighborhoods = [x + [i] for i, x in
@@ -157,6 +157,8 @@ def CLQ_vec(adata, clust_col='leiden', clust_uniq=None, radius=50, n_perms=1000)
     adata.obsm['NCV'] = ncv
     adata.obsm['local_clq'] = lclq
     #colormap by this column 'local_clq' expression'
+    adata.obs[clust_col] = adata.obs[clust_col].astype(str)
+
     adata.uns['CLQ'] = {'global_clq': gclq, 'permute_test': clq_perm}
     obs = pd.DataFrame(index=adata.obs[clust_col].unique(), columns=[], data=[])
     var = pd.DataFrame(index=adata.obs[clust_col].unique(), columns=[], data=[])
