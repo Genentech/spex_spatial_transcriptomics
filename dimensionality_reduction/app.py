@@ -54,7 +54,7 @@ def reduce_dimensionality(adata, prefilter=False,  method='pca', mdist=0.5, n_ne
     }
 
     print('Doing dimensionality reduction...')
-    if method == 'scvi':
+    if method=='scvi':
         counts = adata.raw.to_adata()
         counts.layers['counts'] = counts.X
 
@@ -68,7 +68,7 @@ def reduce_dimensionality(adata, prefilter=False,  method='pca', mdist=0.5, n_ne
 
         adata.obsm['X_scvi'] = vae.get_latent_representation()
 
-    elif method == 'pca' or method == 'diff_map':
+    elif method=='pca' or method=='diff_map':
         sc.pp.pca(adata, n_comps=latent_dim, use_highly_variable=False)
 
     pdat = UnimodalData(adata)
@@ -133,5 +133,5 @@ def run(**kwargs):
     latent_dim = kwargs.get('latent_dim')
 
     out = reduce_dimensionality(adata, prefilter, method, mdist, n_neighbors, latent_dim)
-
+    print('4/29/version')
     return {'adata': out}

@@ -1,10 +1,12 @@
 import pegasus as pg
 from pegasusio import UnimodalData
 import scanpy as sc
+import numpy as np
+import pandas as pd
 
 #Helper class that lets us convert between Pegasus and scanPy
 class DEResult:
-    def __init__(self,cdata,r_arr,mode='pegasus'):
+    def __init__(self,cdata,r_arr,mode='pegasus',clust_col = 'leiden'):
         self.mode = mode
 
         if mode == 'pegasus':
@@ -28,13 +30,13 @@ class DEResult:
                 sc_df.loc[:,'log2fc'] = r_arr['logfoldchanges'][clust_id]
                 sc_df.loc[:,'pval'] = r_arr['pvals'][clust_id]
                 sc_df.loc[:,'qval'] = r_arr['pvals_adj'][clust_id]
-                if np.count_nonzero(cdata.obs.leiden == clust_id):
-                    sc_df.loc[:,'mean'] = cdata[cdata.obs.leiden == clust_id,sc_df.index].X.mean(axis=0)
+                if np.count_nonzero(cdata.obs[clust_col] == clust_id):
+                    sc_df.loc[:,'mean'] = cdata[cdata.obs[clust_col] == clust_id,sc_df.index].X.mean(axis=0)
                 else:
                     sc_df.loc[:,'mean'] = 0
 
                 self.cluster_dfs[clust_id] = sc_df
-    
+
     def convert_to_pegasus(self):
         pfields = ['auroc','log2FC','log2Mean','log2Mean_other','mwu_U','mwu_pval','mwu_qval','percentage','percentage_fold_change','percentage_other']
         dfields = ['pval','log2fc','mean','mean','pval','pval','qval','pval','log2fc','log2fc']
@@ -48,10 +50,10 @@ class DEResult:
             for y,c in zip(pfields,dfields):
                 test_res[':'.join([x,y])] = self.cluster_dfs[x].loc[:,c]
         return test_res
-    
+
     def convert_to_scanpy(self):
         rgg = {}
-        
+
         x = next(iter(self.cluster_dfs))
         rgg['names'] = np.recarray(
             (self.cluster_dfs[x].shape[0],),
@@ -59,19 +61,19 @@ class DEResult:
         )
         rgg['pvals'] = np.recarray(
             (self.cluster_dfs[x].shape[0],),
-            dtype=[(x, 'O') for x in self.cluster_dfs]
+            dtype=[(x, 'float') for x in self.cluster_dfs]
         )
         rgg['pvals_adj'] = np.recarray(
             (self.cluster_dfs[x].shape[0],),
-            dtype=[(x, 'O') for x in self.cluster_dfs]
+            dtype=[(x, 'float') for x in self.cluster_dfs]
         )
         rgg['logfoldchanges'] = np.recarray(
             (self.cluster_dfs[x].shape[0],),
-            dtype=[(x, 'O') for x in self.cluster_dfs]
+            dtype=[(x, 'float') for x in self.cluster_dfs]
         )
         rgg['scores'] = np.recarray(
             (self.cluster_dfs[x].shape[0],),
-            dtype=[(x, 'O') for x in self.cluster_dfs]
+            dtype=[(x, 'float') for x in self.cluster_dfs]
         )
 
         for x in self.cluster_dfs:
@@ -83,7 +85,7 @@ class DEResult:
             rgg['pvals_adj'][x] = np.array(cdf.qval)
             rgg['logfoldchanges'][x] = np.array(cdf.log2fc)
             rgg['scores'][x] = np.zeros((self.cluster_dfs[x].shape[0],))
-        
+
         return rgg
     
 def differential_expression(adata, cluster_key='leiden', method='wilcoxon', mdl=None):
@@ -122,6 +124,7 @@ def differential_expression(adata, cluster_key='leiden', method='wilcoxon', mdl=
 
 def run(**kwargs):
     adata = kwargs.get('adata')
+    adata.uns['log1p']['base'] = np.e
 
     ckey = kwargs.get('cluster_key')
     m = kwargs.get('method')
@@ -132,5 +135,4 @@ def run(**kwargs):
         return {'adata': out[0], 'vae': out[1]}
     else:
         return {'adata': out, 'vae': None}
-    
     

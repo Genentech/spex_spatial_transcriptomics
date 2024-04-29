@@ -1,5 +1,5 @@
 {
-    "name": "STDE",
+    "name": "differential_expression",
     "description": "Differential expression",
     "stage": "3",
     "params":{
@@ -26,7 +26,7 @@
             "type": "scvi.model.SCVI"
         }
     },
-    "script_path": "STDE",
+    "script_path": "differential_expression",
     "return": {
         "STdiffexp": {
             "name": "STdiffexp",
@@ -40,11 +40,25 @@
         }
     },
     "depends_and_script": [
-        "STcluster"
+        "clustering"
     ],
+    "conda": ["python=3.11"],
     "libs": [
-        "scanpy==1.9.3",
-        "scvi-tools==0.20.3",
-        "pegasuspy[all]==1.7.1"
+        "rpy2==3.5.11",
+        "fftw",
+        "cmake==3.28.3",
+        "requests==2.31.0",
+        "cython==3.0.8"
+    ],
+    "conda_pip": [
+        "scanpy==1.9.4",
+        "scvi-tools==1.0.3",
+        "pegasuspy[all]==1.8.0",
+        "fitsne==1.2.1",
+        "jax==0.4.14",
+        "jaxlib==0.4.14",
+        "jaxtyping==0.2.21",
+        "flax==0.7.4",
+        "pandas==1.5.3"
     ]
 }

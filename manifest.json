@@ -5,6 +5,8 @@
   "stages": [
     "preprocessing",
     "CLQ",
-    "dimensionality_reduction"
+    "dimensionality_reduction",
+    "differintial_expression",
+    "analyze_pathways"
   ]
 }
