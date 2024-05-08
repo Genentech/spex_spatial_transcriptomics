@@ -2,7 +2,7 @@ import decoupler as dc
 import pandas as pd
 import pegasus as pg
 from pegasusio import UnimodalData
-
+import os
 
 def annotate_clusters(adata, marker_db, cluster_key='leiden', method='pegasus'):
     #Args:
@@ -40,11 +40,9 @@ def annotate_clusters(adata, marker_db, cluster_key='leiden', method='pegasus'):
 
 def analyze_pathways(adata, pathway_file=None):
 
-    if pathway_file:
-        markers = pd.read_csv(pathway_file)
-    else:
-        print('No marker set specified; defaulting back to PROGENy')
-        markers = pd.read_csv('progeny.csv')
+    script_path = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(script_path, 'progeny.csv')
+    markers = pd.read_csv(path)
 
     dc.run_mlm(adata,markers,source='pathway',target='genesymbol',weight='weight',min_n=3,verbose=True,use_raw=False)
 
@@ -53,15 +51,14 @@ def analyze_pathways(adata, pathway_file=None):
 
     mean_acts = dc.summarize_acts(acts,groupby='cell_type',min_std=0)
 
-    return adata
+    return adata, mean_acts
 
 
 def run(**kwargs):
     adata = kwargs.get('adata')
-    pathway_file = kwargs.get('pathway_file')
 
     adata = annotate_clusters(adata, marker_db='human_immune')
-    adata = analyze_pathways(adata, pathway_file)
+    adata = analyze_pathways(adata)
 
     return {'adata': adata}
 

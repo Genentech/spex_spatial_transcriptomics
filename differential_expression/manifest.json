@@ -6,11 +6,10 @@
         "cluster_key":{
             "name": "cluster_key",
             "description": "obs field that we will group cells by",
-            "required": true,
+            "required": false,
             "type": "string",
             "default": "leiden"
         },
-
         "method":{
             "name":"method",
             "description": "Method to use for differential expression. Can use Mann-Whitney U test (with AUC) from pegasus, any scanpy rank_genes_groups method, or SCVI model (if trained).",
@@ -40,7 +39,8 @@
         }
     },
     "depends_and_script": [
-        "clustering"
+        "clustering",
+        "phenograph_cluster"
     ],
     "conda": ["python=3.11"],
     "libs": [

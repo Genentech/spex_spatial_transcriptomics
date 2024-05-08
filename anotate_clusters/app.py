@@ -1,8 +1,10 @@
+import decoupler as dc
 import pegasus as pg
 from pegasusio import UnimodalData
 import scanpy as sc
 import numpy as np
 import pandas as pd
+
 
 #Helper class that lets us convert between Pegasus and scanPy
 class DEResult:
@@ -87,7 +89,7 @@ class DEResult:
             rgg['scores'][x] = np.zeros((self.cluster_dfs[x].shape[0],))
 
         return rgg
-    
+
 def differential_expression(adata, cluster_key='leiden', method='wilcoxon', mdl=None):
     #Args:
     #adata: the data
@@ -101,7 +103,7 @@ def differential_expression(adata, cluster_key='leiden', method='wilcoxon', mdl=
         if mdl is None:
             print('SCVI model not provided.')
             adata.uns['de_res'] = mdl.differential_expression(adata, groupby=cluster_key)
-        
+
     elif method == 'pegasus':
         pdat = UnimodalData(adata)
         pg.de_analysis(pdat, cluster=cluster_key)
@@ -110,7 +112,7 @@ def differential_expression(adata, cluster_key='leiden', method='wilcoxon', mdl=
         de_res = DEResult(adata, pdat.varm['de_res'],mode='pegasus')
         adata.varm['de_res'] = de_res.convert_to_pegasus()
         adata.uns['de_res'] = de_res.convert_to_scanpy()
-        
+
     #ADD layer here for logarithmized, but not scaled counts.
     else:
         sc.tl.rank_genes_groups(adata,use_raw=False,groupby=cluster_key,method=method,key_added='de_res')
@@ -122,22 +124,54 @@ def differential_expression(adata, cluster_key='leiden', method='wilcoxon', mdl=
     else:
         return adata
 
+def annotate_clusters(adata, marker_db, cluster_key='leiden', method='pegasus'):
+    #Args:
+    #adata: the data
+    #cluster_key: which key in adata.obs tells you the cluster a cell belongs to
+    #marker_db: Either a string for pegasus, or a DataFrame that labels source ('gene') to target ('cell-type').
+    #method: Pegasus will use DEGs; scanpy data will use decouplr
+
+    if method == 'pegasus':
+        pdat = UnimodalData(adata)
+        ctypes = pg.infer_cell_types(pdat,markers=marker_db)
+
+        adata.obs['cell_type'] = 'Unknown'
+        for cluster in ctypes:
+            if len(ctypes[cluster]) == 0:
+                continue
+            adata.obs.loc[adata.obs[cluster_key] == cluster,'cell_type'] = ctypes[cluster][0].name
+    else:
+        dc.decouple(
+            adata,
+            marker_db,
+            source='src',
+            target='genesymbol',
+            weight='wgt',
+            min_n=3,
+            verbose=False,
+            methods=[method]
+        )
+
+        acts = dc.get_acts(adata,obsm_key=f'{method}_estimate')
+
+    return adata
+
+
+
+
+
+
 def run(**kwargs):
     adata = kwargs.get('adata')
-    if 'log1p' not in adata.uns:
-        adata.uns['log1p'] = {}
-    adata.uns['log1p']['base'] = np.e
 
-    ckey = kwargs.get('cluster_key')
-    if ckey not in adata.obs:
-        ckey  = adata.obs.columns[-1:][0]
+    ckey  = adata.obs.columns[-1:][0]
     print(ckey)
-    m = kwargs.get('method')
-    mdl = kwargs.get('mdl')
+    if 'de_res' not in adata.uns:
+        print('differential expression not ready start it before')
+        adata = differential_expression(adata, ckey)
 
-    out = differential_expression(adata,ckey,m,mdl)
-    if m == 'scvi':
-        return {'adata': out[0], 'vae': out[1]}
-    else:
-        return {'adata': out, 'vae': None}
-    
+    adata = annotate_clusters(adata, marker_db='human_immune')
+    print('ac')
+
+    return {'adata': adata}
+

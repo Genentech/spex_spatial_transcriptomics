@@ -1,11 +1,10 @@
 {
-    "name": "analyze_pathways",
-    "description": "Pathway analysis",
+    "name": "anotate_clusters",
+    "description": "Anotate clusters",
     "stage": "1",
     "params":{
-
     },
-    "script_path": "analyze_pathways",
+    "script_path": "anotate_clusters",
     "return": {
         "pathways":{
             "name": "pathway_data",
@@ -15,6 +14,7 @@
 
     },
     "depends_and_script": [
+        "clustering",
         "differential_expression"
     ],
     "conda": ["python=3.11"],
