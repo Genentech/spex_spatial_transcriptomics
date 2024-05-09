@@ -25,7 +25,11 @@
     "phenograph_cluster",
     "clustering"
   ],
+  "conda": ["python=3.11"],
   "libs": [
     "anndata==0.10.5"
+  ],
+  "conda_pip": [
+    "--upgrade setuptools"
   ]
 }
