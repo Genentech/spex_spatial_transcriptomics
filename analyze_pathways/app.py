@@ -51,7 +51,7 @@ def analyze_pathways(adata, pathway_file=None):
 
     mean_acts = dc.summarize_acts(acts,groupby='cell_type',min_std=0)
 
-    return adata, mean_acts
+    return adata
 
 
 def run(**kwargs):

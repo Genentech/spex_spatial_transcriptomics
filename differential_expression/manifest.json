@@ -39,8 +39,7 @@
         }
     },
     "depends_and_script": [
-        "clustering",
-        "phenograph_cluster"
+        "clustering"
     ],
     "conda": ["python=3.11"],
     "libs": [
