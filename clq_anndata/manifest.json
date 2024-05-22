@@ -28,7 +28,7 @@
   },
   "depends_and_script": [
     "clustering",
-    "rename_cluters"
+    "rename_clusters"
   ],
   "conda": ["python=3.10"],
   "conda_pip": [
