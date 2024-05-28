@@ -200,6 +200,31 @@ def cluster(adata, spatial_weight = 0.0, resolution=1.0, method='leiden'):
 
     return adata
 
+def convert_df_columns_to_str(df):
+    df.columns = df.columns.astype(str)
+    return df
+
+def convert_all_keys_to_str(adata):
+    def convert_keys_to_str(mapping):
+        return {str(key): value for key, value in mapping.items()}
+
+    def convert_df_keys_to_str(df):
+        df.columns = df.columns.astype(str)
+        df.index = df.index.astype(str)
+        return df
+
+    for attr in ['obsm', 'varm', 'layers', 'obsp', 'uns']:
+        mapping = getattr(adata, attr)
+        converted_mapping = convert_keys_to_str(mapping)
+
+        for key in converted_mapping:
+            if isinstance(converted_mapping[key], pd.DataFrame):
+                converted_mapping[key] = convert_df_keys_to_str(converted_mapping[key])
+
+        setattr(adata, attr, converted_mapping)
+
+    adata.obs = convert_df_keys_to_str(adata.obs)
+
 
 def run(**kwargs):
     # after_phenograph_clusters on full data per image
@@ -223,5 +248,6 @@ def run(**kwargs):
 
     #Put niche identities back into the AnnData object
     processed_adata.obs['niche'] = ncv_dat.obs.leiden
+    convert_all_keys_to_str(processed_adata)
 
     return {'adata': processed_adata}

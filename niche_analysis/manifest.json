@@ -8,14 +8,14 @@
       "description": "The radius used to construct the neighborhood content vector, in microns",
       "type": "float",
       "required": true,
-      "default": 50
+      "default": 100
     },
     "n_perms": {
       "name": "n_perms",
       "description": "The number of permutations to use for statistical testing",
       "type": "int",
       "required": true,
-      "default": 100
+      "default": 10
     }
   },
   "script_path": "niche_analysis",
