@@ -35,8 +35,7 @@
         }
     },
     "depends_and_script": [
-        "load_anndata",
-        "feature_extraction"
+        "load_anndata"
     ],
     "conda": ["python=3.11"],
     "libs": [

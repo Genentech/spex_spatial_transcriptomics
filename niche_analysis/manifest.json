@@ -3,19 +3,19 @@
   "description": "Spatial niche analysis",
   "stage": "1",
   "params":{
-    "radius": {
-      "name": "radius",
-      "description": "The radius used to construct the neighborhood content vector, in microns",
-      "type": "float",
-      "required": true,
-      "default": 100
-    },
-    "n_perms": {
-      "name": "n_perms",
-      "description": "The number of permutations to use for statistical testing",
+    "n_neighbors": {
+      "name": "n_neighbors",
+      "description": "neighborhood numbers between 1-1000",
       "type": "int",
       "required": true,
-      "default": 10
+      "default": 170
+    },
+    "resolution": {
+      "name": "resolution",
+      "description": "The resolution of the modularity cost function. Lower is less clusters, higher is more clusters.",
+      "type": "float",
+      "required": true,
+      "default": 0.7
     }
   },
   "script_path": "niche_analysis",
@@ -27,7 +27,7 @@
     }
   },
   "depends_and_script": [
-    "dimensionality_reduction"
+    "clq_anndata"
   ],
   "conda": ["python=3.10"],
   "conda_pip": [

@@ -169,7 +169,7 @@ def CLQ_vec(adata, clust_col='leiden', clust_uniq=None, radius=50, n_perms=1000)
     bdata.layers['global_clq'] = gclq
     bdata.layers['permute_test'] = clq_perm
 
-    return bdata
+    return bdata, adata
 
 
 def run(**kwargs):
@@ -187,7 +187,7 @@ def run(**kwargs):
         n_perms = kwargs.get('n_perms')
         clust_uniq = filtered_adata.obs['cluster_phenograph'].unique()
 
-        processed_adata = CLQ_vec(filtered_adata, clust_col, clust_uniq, radius, n_perms)
+        processed_adata, clq_adata = CLQ_vec(filtered_adata, clust_col, clust_uniq, radius, n_perms)
         adatas_list.append({
             f"{task.get('_key')}-clq": processed_adata}
         )

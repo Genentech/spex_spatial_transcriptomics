@@ -167,11 +167,12 @@ def CLQ_vec(adata, clust_col='leiden', clust_uniq=None, radius=50, n_perms=1000)
         obs=obs,
         var=var
     )
+
     bdata.uns['local_clq'] = lclq
     bdata.layers['global_clq'] = gclq
     bdata.layers['permute_test'] = clq_perm
 
-    return bdata
+    return bdata, adata
 
 
 def run(**kwargs):
@@ -184,6 +185,6 @@ def run(**kwargs):
     radius = kwargs.get('radius')
     n_perms = kwargs.get('n_perms')
 
-    processed_adata = CLQ_vec(adata, clust_col, cluster_uniq, radius, n_perms)
+    processed_adata, adata = CLQ_vec(adata, clust_col, cluster_uniq, radius, n_perms)
 
-    return {'adata': processed_adata}
+    return {'adata': processed_adata, 'clq_adata': adata}
