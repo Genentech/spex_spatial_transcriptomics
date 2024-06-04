@@ -155,6 +155,10 @@ def convert_all_keys_to_str(adata):
 def run(**kwargs):
     # after_phenograph_clusters on full data per image
     adata = kwargs.get('clq_adata')
+    try:
+        adata.obs['leiden'] = adata.obs['cluster_phenograph']
+    except KeyError:
+        print('not have cluster_phenograph')
     n_neighbors = kwargs.get('n_neighbors')
     resolution = kwargs.get('resolution')
 

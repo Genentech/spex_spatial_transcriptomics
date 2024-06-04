@@ -27,7 +27,8 @@
     }
   },
   "depends_and_script": [
-    "clq_anndata"
+    "clq_anndata",
+    "CLQ"
   ],
   "conda": ["python=3.10"],
   "conda_pip": [
