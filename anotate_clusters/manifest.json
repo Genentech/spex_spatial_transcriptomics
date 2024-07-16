@@ -23,7 +23,8 @@
         "fftw",
         "cmake==3.28.3",
         "requests==2.31.0",
-        "cython==3.0.8"
+        "cython==3.0.8",
+        "decoupler==1.7.0"
     ],
     "conda_pip": [
         "scanpy==1.9.4",
@@ -34,7 +35,6 @@
         "jaxlib==0.4.14",
         "jaxtyping==0.2.21",
         "flax==0.7.4",
-        "pandas==1.5.3",
-        "decoupler==1.4.0"
+        "pandas==1.5.3"
     ]
 }
