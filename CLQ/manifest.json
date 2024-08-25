@@ -27,8 +27,7 @@
     }
   },
   "depends_and_script": [
-    "phenograph_cluster",
-    "rename_clusters"
+    "phenograph_cluster"
   ],
 
   "libs": [
