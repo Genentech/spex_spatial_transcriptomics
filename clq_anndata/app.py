@@ -149,7 +149,6 @@ def CLQ_vec(adata, clust_col='leiden', clust_uniq=None, radius=50, n_perms=1000)
     gclq = pd.DataFrame(global_clq[:, 0, :], index=idx, columns=idx)
     ncv = pd.DataFrame(ncv[0, :, :], index=adata.obs_names, columns=idx)
 
-
     # Permutation test
     clq_perm = (global_clq[:, 1:, :] < global_clq[:, 0, :].reshape(n_clust, -1, n_clust)).sum(1) / n_perms
     clq_perm = pd.DataFrame(clq_perm, index=idx, columns=idx)
@@ -176,15 +175,25 @@ def CLQ_vec(adata, clust_col='leiden', clust_uniq=None, radius=50, n_perms=1000)
 
 
 def run(**kwargs):
-    # after_phenograph_clusters on full data per image
     adata = kwargs.get('adata')
-    clust_col = adata.obs.columns[-1:][0]
-    obs_df=adata.obs[clust_col]
-    cluster_uniq=list(set(obs_df))
+    clust_col = adata.obs.columns[-1]
+    obs_df = adata.obs[clust_col]
+    cluster_uniq = obs_df.unique()
 
     radius = kwargs.get('radius')
     n_perms = kwargs.get('n_perms')
 
+    # Process the combined data
     processed_adata, adata = CLQ_vec(adata, clust_col, cluster_uniq, radius, n_perms)
 
-    return {'adata': processed_adata, 'clq_adata': adata}
+    # Split the processed data into separate Anndata objects
+    adatas_dict = {}
+    for filename in adata.obs['filename'].unique():
+        adata_per_file = adata[adata.obs['filename'] == filename].copy()
+        adatas_dict[filename] = adata_per_file
+
+    return {
+        'adata': processed_adata,  # The combined processed data
+        'clq_adata': adata,                  # The combined data with CLQ results
+        'adatas_dict': adatas_dict           # Dictionary of separate Anndata objects per file
+    }

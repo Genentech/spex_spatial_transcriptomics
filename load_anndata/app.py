@@ -11,6 +11,7 @@ def run(**kwargs):
             adata.obs['filename'] = file.split('\\')[-1]
             adatas.append(adata)
         combined_adata = sc.concat(adatas, axis=0, join='outer', label='filename', index_unique='-')
+        print('combined')
         return {'adata': combined_adata}
     else:
         adata = sc.read_h5ad(path)
