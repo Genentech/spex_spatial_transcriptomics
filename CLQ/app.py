@@ -200,6 +200,10 @@ def run(**kwargs):
     clust_col = adata.obs.columns[-1:][0]
     obs_df=adata.obs[clust_col]
     cluster_uniq=list(set(obs_df))
-    _, adata = CLQ_vec(adata, clust_col, cluster_uniq, radius, n_perms)
+    bdata, adata = CLQ_vec(adata, clust_col, cluster_uniq, radius, n_perms)
 
-    return {'adatas_list': adatas_list, 'adata': adata}
+    return {
+        'adatas_list': adatas_list,
+        'clq_adata': adata,
+        'adata': bdata
+    }
