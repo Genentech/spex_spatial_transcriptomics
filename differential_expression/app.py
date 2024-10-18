@@ -8,6 +8,7 @@ import pandas as pd
 class DEResult:
     def __init__(self,cdata,r_arr,mode='pegasus',clust_col = 'leiden'):
         self.mode = mode
+        self.clust_col = clust_col
 
         if mode == 'pegasus':
             clusters = set(x.split(':')[0] for x in r_arr.dtype.names)
@@ -87,12 +88,14 @@ class DEResult:
             rgg['scores'][x] = np.zeros((self.cluster_dfs[x].shape[0],))
 
         return rgg
-    
+
+
 def differential_expression(adata, cluster_key='leiden', method='wilcoxon', mdl=None):
-    #Args:
-    #adata: the data
-    #cluster_key: adata.obs[key] determines cell cluster membership
-    #method: Significance test - currently support basic DEG from scanpy, pegasus and built-in scVI method.
+    # Args:
+    # adata: the data
+    # cluster_key: adata.obs[key] determines cell cluster membership
+    # method: Significance test - currently support basic DEG from scanpy, pegasus and built-in scVI method.
+    print(adata.obs)
 
     if method == 'scvi':
         if 'X_scvi' not in adata.obsm:
@@ -101,26 +104,32 @@ def differential_expression(adata, cluster_key='leiden', method='wilcoxon', mdl=
         if mdl is None:
             print('SCVI model not provided.')
             adata.uns['de_res'] = mdl.differential_expression(adata, groupby=cluster_key)
-        
+
     elif method == 'pegasus':
         pdat = UnimodalData(adata)
         pg.de_analysis(pdat, cluster=cluster_key)
 
-        #Convert from pegasus format to scanpy format and store.
-        de_res = DEResult(adata, pdat.varm['de_res'],mode='pegasus')
+        # Convert from pegasus format to scanpy format and store.
+        de_res = DEResult(
+            adata,
+            pdat.varm['de_res'],
+            mode='pegasus',
+            clust_col=cluster_key
+        )
         adata.varm['de_res'] = de_res.convert_to_pegasus()
         adata.uns['de_res'] = de_res.convert_to_scanpy()
-        
-    #ADD layer here for logarithmized, but not scaled counts.
+
+    # ADD layer here for logarithmized, but not scaled counts.
     else:
-        sc.tl.rank_genes_groups(adata,use_raw=False,groupby=cluster_key,method=method,key_added='de_res')
-        de_res = DEResult(adata, adata.uns['de_res'],mode='scanpy')
+        sc.tl.rank_genes_groups(adata, use_raw=False, groupby=cluster_key, method=method, key_added='de_res')
+        de_res = DEResult(adata, adata.uns['de_res'], mode='scanpy', clust_col=cluster_key)
         adata.varm['de_res'] = de_res.convert_to_pegasus()
 
     if method == 'scvi':
         return adata, mdl
     else:
         return adata
+
 
 def run(**kwargs):
     adata = kwargs.get('adata')

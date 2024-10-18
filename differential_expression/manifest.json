@@ -39,7 +39,8 @@
         }
     },
     "depends_and_script": [
-        "clustering"
+        "clustering",
+        "niche_analysis"
     ],
     "conda": ["python=3.11"],
     "conda_pip": [
