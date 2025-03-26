@@ -153,7 +153,7 @@ def CLQ_vec(adata, clust_col='leiden', clust_uniq=None, radius=50, n_perms=1000)
 
 
     # Permutation test
-    clq_perm_attr = ((global_clq[:, 1:, :] <= global_clq[:, 0, :].reshape(n_clust, -1, n_clust)).sum(1) + 1) / (n_perms + 1)
+    clq_perm_attr = ((global_clq[:, 1:, :] >= global_clq[:, 0, :].reshape(n_clust, -1, n_clust)).sum(1) + 1) / (n_perms + 1)
     clq_perm_avoid = 1 - clq_perm_attr
     
     clq_perm_attr = pd.DataFrame(clq_perm_attr, index=idx, columns=idx)
@@ -161,7 +161,7 @@ def CLQ_vec(adata, clust_col='leiden', clust_uniq=None, radius=50, n_perms=1000)
 
     perm_test = pd.DataFrame('n.s.',index=idx,columns=idx)
     perm_test.[clq_perm_attr < 0.05] = 'attractive'
-    perm_test[clq_perm_rep < 0.05] = 'avoidant'
+    perm_test[clq_perm_avoid < 0.05] = 'avoidant'
 
     adata.obsm['NCV'] = ncv
     adata.obsm['local_clq'] = lclq
