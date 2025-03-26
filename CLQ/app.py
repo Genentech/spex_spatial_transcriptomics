@@ -153,15 +153,22 @@ def CLQ_vec(adata, clust_col='leiden', clust_uniq=None, radius=50, n_perms=1000)
 
 
     # Permutation test
-    clq_perm = (global_clq[:, 1:, :] < global_clq[:, 0, :].reshape(n_clust, -1, n_clust)).sum(1) / n_perms
-    clq_perm = pd.DataFrame(clq_perm, index=idx, columns=idx)
+    clq_perm_attr = ((global_clq[:, 1:, :] <= global_clq[:, 0, :].reshape(n_clust, -1, n_clust)).sum(1) + 1) / (n_perms + 1)
+    clq_perm_avoid = 1 - clq_perm_attr
+    
+    clq_perm_attr = pd.DataFrame(clq_perm_attr, index=idx, columns=idx)
+    clq_perm_avoid = pd.DataFrame(clq_perm_avoid, index=idx, columns=idx)
+
+    perm_test = pd.DataFrame('n.s.',index=idx,columns=idx)
+    perm_test.loc[clq_perm_attr < 0.05] = 'attractive'
+    perm_test.loc[clq_perm_rep < 0.05] = 'avoidant'
 
     adata.obsm['NCV'] = ncv
     adata.obsm['local_clq'] = lclq
     #colormap by this column 'local_clq' expression'
     adata.obs[clust_col] = adata.obs[clust_col].astype(str)
 
-    adata.uns['CLQ'] = {'global_clq': gclq, 'permute_test': clq_perm}
+    adata.uns['CLQ'] = {'global_clq': gclq, 'p_attr': clq_perm_attr, 'p_avoid': clq_perm_rep, 'perm_test': perm_test}
     obs = pd.DataFrame(index=adata.obs[clust_col].unique(), columns=[], data=[])
     var = pd.DataFrame(index=adata.obs[clust_col].unique(), columns=[], data=[])
 
@@ -172,7 +179,8 @@ def CLQ_vec(adata, clust_col='leiden', clust_uniq=None, radius=50, n_perms=1000)
 
     bdata.uns['local_clq'] = lclq
     bdata.layers['global_clq'] = gclq
-    bdata.layers['permute_test'] = clq_perm
+    bdata.layers['p_attr'] = clq_perm_attr
+    bdata.layers['p_avoid'] = clq_perm_avoid
 
     return bdata, adata
 
